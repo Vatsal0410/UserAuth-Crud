@@ -51,6 +51,7 @@ export const authService = {
   },
 };
 
+// user service methods
 export const userService = {
   fetchUsers: async (token: string): Promise<User[]> => {
     return fetchAPI("dashboard/users", {
@@ -84,9 +85,6 @@ export const userService = {
       },
       body: JSON.stringify(user),
     });
-
-    console.log("Response:", response);
-    console.log(`Response.updatedUser:`, response.updatedUser);
     return response.updatedUser || response
   },
   deleteUser: async (token: string,userId: string) => {

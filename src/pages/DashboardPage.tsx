@@ -5,11 +5,14 @@ import { useUserStore, type User } from "../store/userStore";
 import { userService } from "../service/apiService";
 import UserTable from "../conponents/UserTable";
 import UserForm from "../conponents/UserForm";
+import DeleteConfirmation from "../conponents/DeleteConfirmation";
 
 const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [openForm, setOpenForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -60,8 +63,6 @@ const DashboardPage = () => {
     if (!token || !editingUser) return;
 
     try {
-      console.log(`Updating user: ${editingUser.id} with data:`, userData);
-      
       const updatedUser = await userService.updateUser(
         token,
         editingUser.id,
@@ -78,18 +79,33 @@ const DashboardPage = () => {
     }
   };
 
-  const handleDelete = async (userId: string) => {
-    if (!token) return;
+  const handleDeleteConfirm = async () => {
+    if (!token || !deletingUser) return;
 
     try {
-      await userService.deleteUser(token, userId);
-      deleteUser(userId);
+      setDeleteLoading(true);
+      await userService.deleteUser(token, deletingUser.id);
+      deleteUser(deletingUser.id);
+      setDeletingUser(null)
       showSuccess("User deleted successfully");
     } catch (err: any) {
       showError(err.message || "Failed to delete user");
       throw err;
+    } finally {
+      setDeleteLoading(false);
     }
   };
+
+  const handleDeleteClick = (userId: string) => {
+    const userToDelete = users.find((u) => u.id === userId);
+    if(userToDelete) {
+      setDeletingUser(userToDelete);
+    }
+  }
+
+  const handleCloseDeleteConfirm = () => {
+    setDeletingUser(null);
+  }
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
@@ -153,7 +169,7 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
+        
         <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-white/60 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div className="mb-6 lg:mb-0">
@@ -210,7 +226,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Notifications */}
+        
         <div className="space-y-3 mb-6">
           {error && (
             <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
@@ -255,20 +271,28 @@ const DashboardPage = () => {
           )}
         </div>
 
-        {/* User Table */}
+        
         <UserTable
           users={users}
           onEdit={handleEditUser}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
         />
 
-        {/* User Form Modal */}
+        
         <UserForm
           open={openForm}
           onClose={handleCloseForm}
           onSubmit={editingUser ? handleUpdateUser : handleAddUser}
           user={editingUser}
           isEditing={!!editingUser}
+        />
+
+        <DeleteConfirmation 
+          open={!!deletingUser}
+          user={deletingUser}
+          onClose={handleCloseDeleteConfirm}
+          onConfirm={handleDeleteConfirm}
+          loading={deleteLoading}
         />
       </div>
     </div>
