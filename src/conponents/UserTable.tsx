@@ -1,4 +1,4 @@
-import type { User } from "../store/userStore";
+import type { User } from "../types/user";
 import UserActions from "./UserActions";
 
 interface UserTableProps {
@@ -71,7 +71,7 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
                 <td className="px-8 py-5 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-semibold text-base group-hover:scale-105 transition-transform duration-200 shadow-md">
-                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {user.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
                     </div>
                     <div className="ml-4">
                       <div className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">

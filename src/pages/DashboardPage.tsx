@@ -1,21 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useEffect, useState } from "react";
-import { useUserStore, type User } from "../store/userStore";
+import { useUserStore } from "../store/userStore";
 import { userService } from "../service/apiService";
 import UserTable from "../conponents/UserTable";
 import UserForm from "../conponents/UserForm";
 import DeleteConfirmation from "../conponents/DeleteConfirmation";
+import type { User } from "../types/user";
+import { showError} from "../utils/toast";
 
 const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null)
   const [openForm, setOpenForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null)
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false); 
 
   const users = useUserStore((state) => state.users);
   const setUsers = useUserStore((state) => state.setUsers);
@@ -29,21 +29,38 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUsers();
-  }, [token]);
+    const loadDashboardData = async () => {
+      if (!token) {
+        navigate("/login");
+        return
+      }
 
-  const fetchUsers = async () => {
-    if (!token) return;
-    try {
-      setLoading(true);
-      const userData = await userService.fetchUsers(token);
-      setUsers(userData);
-    } catch (err: any) {
-      showError(err.message || "Failed to fetch users");
-    } finally {
-      setLoading(false);
+      try {
+        setLoading(true)
+        setError(null)
+
+        const userData = await userService.fetchUsers(token)
+        setUsers(userData)
+      }
+      catch(err: any) {
+        if(err.status === 401 || err.message?.includes("unauthorized") || err.message?.includes("401")) {
+          clearToken()
+          navigate("/login")
+          return
+        } else {
+          const errorMessage = err.message || "Failed to load dashboard data"
+          setError(errorMessage)
+          showError(errorMessage)
+        }
+      } 
+      finally {
+        setLoading(false)
+      }
     }
-  };
+
+    loadDashboardData()
+  }, [token, navigate, clearToken, setUsers]);
+
 
   const handleAddUser = async (userData: Omit<User, "id">) => {
     if (!token) return;
@@ -52,10 +69,9 @@ const DashboardPage = () => {
       const res = await userService.addUser(token, userData);
       addUser(res);
       setOpenForm(false);
-      showSuccess("User added successfully");
     } catch (err: any) {
-      showError(err.message || "Failed to add user");
-      throw err;
+      handleApiError(err)
+      throw err
     }
   };
 
@@ -72,10 +88,9 @@ const DashboardPage = () => {
       updateUser(completeUser);
       setEditingUser(null);
       setOpenForm(false);
-      showSuccess("User updated successfully");
     } catch (err: any) {
-      showError(err.message || "Failed to update user");
-      throw err;
+      handleApiError(err)
+      throw err
     }
   };
 
@@ -83,18 +98,23 @@ const DashboardPage = () => {
     if (!token || !deletingUser) return;
 
     try {
-      setDeleteLoading(true);
+      setDeleteLoading(true); 
       await userService.deleteUser(token, deletingUser.id);
       deleteUser(deletingUser.id);
-      setDeletingUser(null)
-      showSuccess("User deleted successfully");
+      setDeletingUser(null);
     } catch (err: any) {
-      showError(err.message || "Failed to delete user");
-      throw err;
+      handleApiError(err)
+      throw err
     } finally {
-      setDeleteLoading(false);
+      setDeleteLoading(false); 
     }
   };
+
+  const handleApiError = (error: any) => {
+    const message = error.message || "An unexpected error occurred";
+    showError(message);
+    return { success: false, message };
+  }
 
   const handleDeleteClick = (userId: string) => {
     const userToDelete = users.find((u) => u.id === userId);
@@ -117,22 +137,9 @@ const DashboardPage = () => {
     setOpenForm(false);
   };
 
-  const showError = (message: string) => {
-    setError(message);
-    setTimeout(() => setError(null), 5000);
-  };
-
-  const showSuccess = (message: string) => {
-    setSuccess(message);
-    setTimeout(() => setSuccess(null), 5000);
-  };
-
   const handleLogout = () => {
-    setLogoutLoading(true);
-    setTimeout(() => {
-      clearToken();
-      navigate("/login");
-    }, 2000);
+    clearToken();
+    navigate("/login");
   };
 
   if (loading) {
@@ -150,20 +157,26 @@ const DashboardPage = () => {
     );
   }
 
-
-
-  if(logoutLoading) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="bg-white p-8 rounded-2xl shadow-lg border border-blue-100 text-center">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <h3 className="text-xl font-semibold text-gray-800">Logging out</h3>
-            <p className="text-gray-600">Taking you back to login screen...</p>
+          <div className="text-red-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
           </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Failed to load dashboard</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -225,52 +238,6 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-
-        
-        <div className="space-y-3 mb-6">
-          {error && (
-            <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-red-500 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-red-700 font-medium">{error}</p>
-              </div>
-            </div>
-          )}
-
-          {success && (
-            <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg shadow-sm">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-green-500 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-green-700 font-medium">{success}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
         
         <UserTable
           users={users}
@@ -278,7 +245,6 @@ const DashboardPage = () => {
           onDelete={handleDeleteClick}
         />
 
-        
         <UserForm
           open={openForm}
           onClose={handleCloseForm}
@@ -292,7 +258,7 @@ const DashboardPage = () => {
           user={deletingUser}
           onClose={handleCloseDeleteConfirm}
           onConfirm={handleDeleteConfirm}
-          loading={deleteLoading}
+          loading={deleteLoading} 
         />
       </div>
     </div>

@@ -1,21 +1,8 @@
 import { create } from "zustand"
+import type { User, UserStore } from "../types/user"
 
-export interface User{
-    id: string
-    name: string
-    email: string
-    department: string
-}
 
-interface UserState {
-    users: User[]
-    setUsers: (users: User[]) => void
-    addUser: (user: User) => void
-    updateUser: (user: User) => void
-    deleteUser: (id: string) => void
-}
-
-export const useUserStore = create<UserState>()((set) => ({
+export const useUserStore = create<UserStore>()((set) => ({
     users: [],
     setUsers: (users: User[]) => set({ users }),
     addUser: (user: User) => set((state) => ({

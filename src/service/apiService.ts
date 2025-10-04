@@ -1,5 +1,4 @@
-import type { User } from "../store/userStore";
-
+import type { User } from "../types/user";
 
 const API_URL = "https://crud-api-5f45.onrender.com";
 
@@ -22,16 +21,22 @@ const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
       } catch {
         errorMessage = response.statusText || errorMessage;
       }
-      throw new Error(errorMessage)
+
+      const error = new Error(errorMessage);
+      (error as any).status = response.status;
+      throw error;
+      
     }
     if(response.status === 204) {
       return null;
     }
     return response.json();
+    
   } catch (err: any) {
     if(err instanceof Error) {
-      throw new Error(`Network error occurred ${err.message}`);
+      throw err
     }
+    throw new Error(`Network error occurred`)
   }
 };
 
@@ -48,7 +53,7 @@ export const authService = {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
     });
-  },
+  }
 };
 
 // user service methods

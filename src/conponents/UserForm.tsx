@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { type User } from "../store/userStore";
+import type { User, UserFormData } from "../types/user";
+import { showError, showSuccess } from "../utils/toast";
 
 interface UserFormProps {
   open: boolean;
   user?: User | null;
   onClose: () => void;
-  onSubmit: (user: Omit<User, "id">) => void;
+  onSubmit: (user: UserFormData) => Promise<void>;
   isEditing?: boolean;
 }
 
 const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) => {
-  const { control, handleSubmit, reset, formState: { errors } } = useForm({
+  const { control, handleSubmit, reset, formState: { errors, isDirty }} = useForm<UserFormData>({
     defaultValues: {
       name: "",
       email: "",
@@ -20,7 +21,6 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -44,12 +44,10 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
           department: "",
         });
       }
-      setError(null); 
     }
 
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
+    return () => document.removeEventListener("keydown", handleEscape);
+
   }, [open, user, isEditing, reset, onClose]);
 
   
@@ -61,24 +59,30 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
 
   if (!open) return null;
 
-  const onFormSubmit = async (data: { name: string, email: string, department: string }) => {
+  const onFormSubmit = async (data: UserFormData) => {
     setLoading(true);
-    setError(null);
-
     try {
-      await onSubmit(data);
-      if (!isEditing) {
-        reset();
+      if (isEditing && user && !isDirty) {
+        showSuccess("No changes detected");
+        onClose()
+        return
       }
+
+      await onSubmit(data)
+      showSuccess(isEditing ? "User updated successfully" : "User added successfully");
+
+      if(!isEditing) {
+        reset()
+      }
+      onClose()
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+      showError(err.message || "An unexpected error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    setError(null);
     onClose();
   };
 
@@ -109,13 +113,7 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
 
         <h2 className="text-xl font-bold text-gray-900 text-center mb-2">
           {isEditing ? "Edit User" : "Add User"}
-        </h2>
-
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
-            <p className="text-sm text-red-600 text-center">{error}</p>
-          </div>
-        )}
+        </h2> 
 
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
           
@@ -129,7 +127,13 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
             <Controller
               name="name"
               control={control}
-              rules={{ required: "Name is required" }}
+              rules={{ 
+                required: "Name is required",
+                minLength: {
+                  value: 2,
+                  message: "Name must be at least 2 characters"
+                }
+              }}
               render={({ field }) => (
                 <input
                   {...field}
@@ -158,8 +162,8 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
               rules={{
                 required: "Email Address is required",
                 pattern: {
-                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-                  message: "Invalid email format",
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address",
                 },
               }}
               render={({ field }) => (
@@ -187,7 +191,13 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
             <Controller
               name="department"
               control={control}
-              rules={{ required: "Department is required" }}
+              rules={{ 
+                required: "Department is required",
+                minLength: {
+                  value: 2,
+                  message: "Department must be at least 2 characters"
+                }
+              }}
               render={({ field }) => (
                 <input
                   {...field}
@@ -206,7 +216,7 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
           <div className="flex space-x-3">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (isEditing && !isDirty)}
               className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center space-x-2 border border-blue-600"
             >
               {loading ? (
@@ -241,6 +251,12 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
               Cancel
             </button>
           </div>
+
+          {isEditing && !isDirty && (
+            <p className="text-sm text-blue-600 text-center">
+              No changes made to the user data
+            </p>
+          )}
         </form>
       </div>
     </div>

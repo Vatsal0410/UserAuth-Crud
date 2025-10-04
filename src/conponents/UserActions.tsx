@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { User } from "../store/userStore";
+import type { User } from "../types/user";
 
 interface UserActionsProps {
   user: User
@@ -70,28 +70,6 @@ const UserActions = ({ user, onEdit, onDelete }: UserActionsProps) => {
                 </svg>
               </div>
             </div>
-
-            
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Delete User
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Are you sure you want to delete this user? This action cannot be undone.
-              </p>
-              
-              
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <p className="font-semibold text-red-800 text-lg">{user.name}</p>
-                <p className="text-sm text-red-600">{user.email}</p>
-                <p className="text-xs text-red-500 mt-1">{user.department} Department</p>
-              </div>
-              
-              <p className="text-sm text-red-600 font-medium">
-                ⚠️ This will permanently remove the user from the system.
-              </p>
-            </div>
-
             
             <div className="flex space-x-3">
               <button

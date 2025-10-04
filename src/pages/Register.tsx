@@ -3,13 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../service/apiService";
 import { useAuthStore } from "../store/authStore";
 import { useState } from "react";
-
-interface RegisterFormData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+import type { RegisterData } from "../types/auth";
+import { showError, showSuccess } from "../utils/toast";
 
 function RegisterPage() {
   const {
@@ -17,25 +12,38 @@ function RegisterPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     watch,
-  } = useForm<RegisterFormData>();
+  } = useForm<RegisterData>();
 
   const navigate = useNavigate();
   const setToken = useAuthStore((state) => state.setToken);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async (data: RegisterData) => {
     setServerError(null);
     try {
       const res = await authService.register(data.name, data.email, data.password);
-      if (!res.token) {
-        setServerError(res.message || "Registration failed");
-        return;
+      
+      // Check if the response indicates success
+      if (res.token) {
+        // Success case - we have a token
+        setToken(res.token);
+        showSuccess(res.message || "Account created successfully! Welcome!");
+        navigate("/dashboard");
+      } else if (res.message && res.message.toLowerCase().includes("success")) {
+        // Success case - message indicates success but no token (unexpected)
+        showSuccess(res.message);
+        // You might want to navigate to login instead since no token
+        navigate("/login");
+      } else {
+        // Error case - no token and no success message
+        const errorMsg = res.message || "Registration failed";
+        setServerError(errorMsg);
+        showError(errorMsg);
       }
-
-      setToken(res.token);
-      navigate("/dashboard");
     } catch (err: any) {
-      setServerError(err.message || "An unexpected error occurred");
+      const errorMsg = err.message || "An unexpected error occurred";
+      setServerError(errorMsg);
+      showError(errorMsg);
     }
   };
 
