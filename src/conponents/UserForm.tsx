@@ -217,7 +217,7 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
             <button
               type="submit"
               disabled={loading || (isEditing && !isDirty)}
-              className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center space-x-2 border border-blue-600"
+              className="flex-1 cursor-pointer bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center space-x-2 border border-blue-600"
             >
               {loading ? (
                 <>
@@ -246,7 +246,7 @@ const UserForm = ({ open, user, onClose, onSubmit, isEditing }: UserFormProps) =
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-all duration-200 font-medium border border-gray-300"
+              className="flex-1 cursor-pointer bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-all duration-200 font-medium border border-gray-300"
             >
               Cancel
             </button>

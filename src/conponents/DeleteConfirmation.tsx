@@ -85,7 +85,7 @@ const DeleteConfirmation = ({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center space-x-2 border border-red-600"
+            className="flex-1 bg-red-600 cursor-pointer text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center space-x-2 border border-red-600"
           >
             {loading ? (
               <>
@@ -115,7 +115,7 @@ const DeleteConfirmation = ({
             type="button"
             onClick={onClose} 
             disabled={loading}
-            className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium border border-gray-300"
+            className="flex-1 bg-gray-200 cursor-pointer text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium border border-gray-300"
           >
             Cancel
           </button>

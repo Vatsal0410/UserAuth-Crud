@@ -1,17 +1,19 @@
+import { addUser, deleteUser, login, signup, updateUser, users } from "../config/constants";
 import type { User } from "../types/user";
 
-const API_URL = "https://crud-api-5f45.onrender.com";
+
 
 // fetch api request
-const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
+const fetchAPI = async (api: string, options: RequestInit = {}) => {
   try {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetch(`${api}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
       },
     });
+    console.log(response.status);
     if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`; 
 
@@ -43,13 +45,15 @@ const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
 // auth service methods
 export const authService = {
   login: async (email: string, password: string) => {
-    return fetchAPI("login", {
+    return fetchAPI(login, {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
   },
+
+
   register: async (name: string, email: string, password: string) => {
-    return fetchAPI("signup", {
+    return fetchAPI(signup, {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
     });
@@ -59,7 +63,7 @@ export const authService = {
 // user service methods
 export const userService = {
   fetchUsers: async (token: string): Promise<User[]> => {
-    return fetchAPI("dashboard/users", {
+    return fetchAPI(users, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -74,7 +78,7 @@ export const userService = {
       department: string;
     }
   ): Promise<User> => {
-    return fetchAPI("dashboard/user", {
+    return fetchAPI(addUser, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -83,7 +87,7 @@ export const userService = {
     });
   },
   updateUser: async (token: string, userId: string, user: Omit<User, "id">): Promise<User> => {
-    const response =  await   fetchAPI(`dashboard/user/${userId}`, {
+    const response =  await   fetchAPI(`${updateUser}/${userId}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -93,7 +97,7 @@ export const userService = {
     return response.updatedUser || response
   },
   deleteUser: async (token: string,userId: string) => {
-    return fetchAPI(`dashboard/user/${userId}`, {
+    return fetchAPI(`${deleteUser}/${userId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
