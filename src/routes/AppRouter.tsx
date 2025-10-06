@@ -1,8 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 
-import DashboardPage from "../pages/DashboardPage";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/Register";
+import DashboardPage from "../pages/DashboardPage"
+import LoginPage from "../pages/LoginPage"
+import RegisterPage from "../pages/Register"
 
 const AppRouter = () => {
   return (
@@ -14,7 +14,7 @@ const AppRouter = () => {
         <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </Router>
-  );
-};
+  )
+}
 
-export default AppRouter;
+export default AppRouter

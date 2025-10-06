@@ -1,11 +1,12 @@
+
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+import { UserProvider } from "./context/UserContext"
 import AppRouter from "./routes/AppRouter"
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-
   return (
-    <>
+    <UserProvider>
       <AppRouter />
       <ToastContainer 
         position="top-right"
@@ -19,7 +20,7 @@ function App() {
         pauseOnHover
         theme="light"
       />
-    </>
+    </UserProvider>
   )
 }
 

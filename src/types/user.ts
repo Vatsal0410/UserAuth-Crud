@@ -1,14 +1,14 @@
 export interface User {
-    id: string;
-    name: string;
-    email: string;
-    department: string;
+    id: string
+    name: string
+    email: string
+    department: string
 }
 
 export interface UserFormData {
-    name: string;
-    email: string;
-    department: string;
+    name: string
+    email: string
+    department: string
 }
 
 export interface UserStore {

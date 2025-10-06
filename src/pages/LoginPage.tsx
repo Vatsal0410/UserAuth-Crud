@@ -1,53 +1,12 @@
-// import { useState, type FormEvent } from "react"
-// import { useForm } from "react-hook-form"
-// import { authService } from "../service/apiService"
-// import { useAuthStore } from "../store/authStore"
-
-// const LoginPage = () => {
-
-//     const [email, setEmail] = useState("")
-//     const [password, setPassword] = useState("")
-//     const [error, setError] = useState<string | null>(null)
-//     const [loading, setLoading] = useState(false)
-
-//     const setToken = useAuthStore(state => state.setToken)
-
-//     const {register, handleSubmit, reset, formState:{errors}} =useForm()
-
-//     const onLogin = async () => {
-        
-//         setError(null)
-//         try {
-//             const res = await authService.login(email, password)
-//             setToken(res.token)
-
-//         }
-//         catch(err: any) {
-//             setError(err.message)
-//         } finally {
-//             setLoading(false)
-//         }
-//     }
-
-//     return (
-//         <form onSubmit={handleSubmit(onLogin())}>
-//             <h1>Login Page</h1>
-//         </form>
-//     )
-// }
-
-// export default LoginPage
-
-
-import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
-import { authService } from "../service/apiService";
-import { useState } from "react";
+import { useForm } from "react-hook-form"
+import { Link, useNavigate } from "react-router-dom"
+import { authService } from "../service/apiService"
+import { useState } from "react"
+import { authCookies } from "../utils/cookies"
 
 interface LoginFormData {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
 const LoginPage = () => {
@@ -55,26 +14,25 @@ const LoginPage = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>();
+  } = useForm<LoginFormData>()
 
-  const setToken = useAuthStore((state) => state.setToken);
-  const navigate = useNavigate();
-  const [serverError, setServerError] = useState<string | null>(null);
+  const navigate = useNavigate()
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const onSubmit = async (data: LoginFormData) => {
-    setServerError(null);
+    setServerError(null)
     try {
-      const res = await authService.login(data.email, data.password);
+      const res = await authService.login(data.email, data.password)
       if (!res.token) {
-        setServerError(res.message || "Login failed");
-        return;
+        setServerError(res.message || "Login failed")
+        return
       }
-      setToken(res.token);
-      navigate("/dashboard");
+      authCookies.setToken(res.token) 
+      navigate("/dashboard")
     } catch (err: any) {
-      setServerError(err.message || "An unexpected error occurred");
+      setServerError(err.message || "An unexpected error occurred")
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
@@ -258,7 +216,7 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage

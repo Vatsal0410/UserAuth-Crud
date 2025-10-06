@@ -1,4 +1,4 @@
-export const API_URL = "https://crud-api-5f45.onrender.com";
+export const API_URL = "https://crud-api-5f45.onrender.com"
 
 export const login = `${API_URL}/login`
 export const signup = `${API_URL}/signup`

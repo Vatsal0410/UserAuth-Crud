@@ -1,50 +1,43 @@
-import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
-import { useEffect, useState } from "react";
-import { useUserStore } from "../store/userStore";
-import { userService } from "../service/apiService";
-import UserTable from "../conponents/UserTable";
-import UserForm from "../conponents/UserForm";
-import DeleteConfirmation from "../conponents/DeleteConfirmation";
-import type { User } from "../types/user";
-import { showError} from "../utils/toast";
+import { useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { userService } from "../service/apiService"
+import UserTable from "../components/UserTable"
+import UserForm from "../components/UserForm"
+import DeleteConfirmation from "../components/DeleteConfirmation"
+import type { User } from "../types/user"
+import { showError, showSuccess } from "../utils/toast"
+import { authCookies } from "../utils/cookies"
+import { useUsers } from "../context/UserContext"
 
 const DashboardPage = () => {
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null)
-  const [openForm, setOpenForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false); 
+  const [openForm, setOpenForm] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [deletingUser, setDeletingUser] = useState<User | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false) 
 
-  const users = useUserStore((state) => state.users);
-  const setUsers = useUserStore((state) => state.setUsers);
-  const addUser = useUserStore((state) => state.addUser);
-  const updateUser = useUserStore((state) => state.updateUser);
-  const deleteUser = useUserStore((state) => state.deleteUser);
-
-  const token = useAuthStore((state) => state.token);
-  const clearToken = useAuthStore((state) => state.clearToken);
-
-  const navigate = useNavigate();
+  const { users, setUsers, addUser, updateUser, deleteUser, loading, setLoading } = useUsers()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      const token = authCookies.getToken()
+      
       if (!token) {
-        navigate("/login");
+        navigate("/login")
         return
       }
 
       try {
         setLoading(true)
         setError(null)
-
+        
         const userData = await userService.fetchUsers(token)
         setUsers(userData)
-      }
-      catch(err: any) {
-        if(err.status === 401 || err.message?.includes("unauthorized") || err.message?.includes("401")) {
-          clearToken()
+        
+      } catch (err: any) {
+        if (err.status === 401 || err.message?.includes("unauthorized") || err.message?.includes("401")) {
+          authCookies.removeToken()
           navigate("/login")
           return
         } else {
@@ -52,95 +45,98 @@ const DashboardPage = () => {
           setError(errorMessage)
           showError(errorMessage)
         }
-      } 
-      finally {
+      } finally {
         setLoading(false)
       }
     }
 
     loadDashboardData()
-  }, [token, navigate, clearToken, setUsers]);
-
+  }, [navigate, setUsers, setLoading])
 
   const handleAddUser = async (userData: Omit<User, "id">) => {
-    if (!token) return;
+    const token = authCookies.getToken()
+    if (!token) return
 
     try {
-      const res = await userService.addUser(token, userData);
-      addUser(res);
-      setOpenForm(false);
+      const res = await userService.addUser(token, userData)
+      addUser(res)
+      setOpenForm(false)
+      showSuccess("User added successfully")
     } catch (err: any) {
       handleApiError(err)
       throw err
     }
-  };
+  }
 
   const handleUpdateUser = async (userData: Omit<User, "id">) => {
-    if (!token || !editingUser) return;
+    const token = authCookies.getToken()
+    if (!token || !editingUser) return
 
     try {
       const updatedUser = await userService.updateUser(
         token,
         editingUser.id,
         userData
-      );
-      const completeUser: User = {...updatedUser, id: editingUser.id};
-      updateUser(completeUser);
-      setEditingUser(null);
-      setOpenForm(false);
+      )
+      const completeUser: User = {...updatedUser, id: editingUser.id}
+      updateUser(completeUser)
+      setEditingUser(null)
+      setOpenForm(false)
+      showSuccess("User updated successfully")
     } catch (err: any) {
       handleApiError(err)
       throw err
     }
-  };
+  }
 
   const handleDeleteConfirm = async () => {
-    if (!token || !deletingUser) return;
+    const token = authCookies.getToken()
+    if (!token || !deletingUser) return
 
     try {
-      setDeleteLoading(true); 
-      await userService.deleteUser(token, deletingUser.id);
-      deleteUser(deletingUser.id);
-      setDeletingUser(null);
+      setDeleteLoading(true) 
+      await userService.deleteUser(token, deletingUser.id)
+      deleteUser(deletingUser.id)
+      setDeletingUser(null)
+      showSuccess("User deleted successfully")
     } catch (err: any) {
       handleApiError(err)
       throw err
     } finally {
-      setDeleteLoading(false); 
+      setDeleteLoading(false) 
     }
-  };
+  }
 
   const handleApiError = (error: any) => {
-    const message = error.message || "An unexpected error occurred";
-    showError(message);
-    return { success: false, message };
+    const message = error.message || "An unexpected error occurred"
+    showError(message)
   }
 
   const handleDeleteClick = (userId: string) => {
-    const userToDelete = users.find((u) => u.id === userId);
-    if(userToDelete) {
-      setDeletingUser(userToDelete);
+    const userToDelete = users.find((u) => u.id === userId)
+    if (userToDelete) {
+      setDeletingUser(userToDelete)
     }
   }
 
   const handleCloseDeleteConfirm = () => {
-    setDeletingUser(null);
+    setDeletingUser(null)
   }
 
   const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    setOpenForm(true);
-  };
+    setEditingUser(user)
+    setOpenForm(true)
+  }
 
   const handleCloseForm = () => {
-    setEditingUser(null);
-    setOpenForm(false);
-  };
+    setEditingUser(null)
+    setOpenForm(false)
+  }
 
   const handleLogout = () => {
-    clearToken();
-    navigate("/login");
-  };
+    authCookies.removeToken()
+    navigate("/login")
+  }
 
   if (loading) {
     return (
@@ -149,12 +145,12 @@ const DashboardPage = () => {
           <div className="flex items-center justify-center space-x-3">
             <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             <span className="text-lg font-medium text-gray-700">
-              Loading users...
+              Loading dashboard...
             </span>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -176,7 +172,7 @@ const DashboardPage = () => {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -189,6 +185,10 @@ const DashboardPage = () => {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 User Dashboard
               </h1>
+              <p className="text-gray-600 mt-2 flex items-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                {users.length} users managed
+              </p>
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
@@ -258,7 +258,7 @@ const DashboardPage = () => {
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default DashboardPage;
+export default DashboardPage

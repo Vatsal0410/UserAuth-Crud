@@ -1,13 +1,14 @@
-import type { User } from "../types/user";
-import UserActions from "./UserActions";
+import type { User } from "../types/user"
+import UserActions from "./UserActions"
 
 interface UserTableProps {
-  users: User[];
-  onEdit: (user: User) => void;
-  onDelete: (id: string) => void;
+  users: User[]
+  onEdit: (user: User) => void
+  onDelete: (id: string) => void
 }
 
 const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
+  // if there are no users
   if (users.length === 0) {
     return (
       <div className="bg-white/80 backdrop-blur-sm p-12 rounded-3xl shadow-sm border border-white/60 text-center">
@@ -21,12 +22,12 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
           <p className="text-gray-600 mb-6">Get started by adding your first user to the system</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-white/60 overflow-hidden">
-      
+      {/* Header */}
       <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-blue-50/30">
         <div className="flex items-center justify-between">
           <div>
@@ -41,9 +42,10 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
         </div>
       </div>
       
-      
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
+          {/* Table Header */}
           <thead>
             <tr className="bg-gradient-to-r from-gray-50/80 to-gray-100/50 border-b border-gray-200">
               <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
@@ -61,6 +63,7 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
             </tr>
           </thead>
 
+          {/* Table Body */}
           <tbody className="divide-y divide-gray-100/60">
             {users.map((user, index) => (
               <tr 
@@ -68,6 +71,7 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
                 className="hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/20 transition-all duration-200 group"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
+                {/* User Name */}
                 <td className="px-8 py-5 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-semibold text-base group-hover:scale-105 transition-transform duration-200 shadow-md">
@@ -80,9 +84,11 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
                     </div>
                   </div>
                 </td>
+                {/* Email */}
                 <td className="px-8 py-5 whitespace-nowrap">
                   <div className="text-sm text-gray-900 font-medium">{user.email}</div>
                 </td>
+                {/* Department */}
                 <td className="px-8 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-200/60 shadow-sm">
                     {user.department}
@@ -101,7 +107,7 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
         </table>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UserTable;
+export default UserTable

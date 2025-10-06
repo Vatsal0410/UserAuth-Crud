@@ -1,10 +1,10 @@
-import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../service/apiService";
-import { useAuthStore } from "../store/authStore";
-import { useState } from "react";
-import type { RegisterData } from "../types/auth";
-import { showError, showSuccess } from "../utils/toast";
+import { useForm } from "react-hook-form"
+import { Link, useNavigate } from "react-router-dom"
+import { authService } from "../service/apiService"
+import { useState } from "react"
+import type { RegisterData } from "../types/auth"
+import { showError, showSuccess } from "../utils/toast"
+import { authCookies } from "../utils/cookies"
 
 function RegisterPage() {
   const {
@@ -12,42 +12,36 @@ function RegisterPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     watch,
-  } = useForm<RegisterData>();
+  } = useForm<RegisterData>()
 
-  const navigate = useNavigate();
-  const setToken = useAuthStore((state) => state.setToken);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const navigate = useNavigate()
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const onSubmit = async (data: RegisterData) => {
-    setServerError(null);
+    setServerError(null)
     try {
-      const res = await authService.register(data.name, data.email, data.password);
+      const res = await authService.register(data.name, data.email, data.password)
       
-      // Check if the response indicates success
       if (res.token) {
-        // Success case - we have a token
-        setToken(res.token);
-        showSuccess(res.message || "Account created successfully! Welcome!");
-        navigate("/dashboard");
+        authCookies.setToken(res.token) 
+        showSuccess(res.message || "Account created successfully! Welcome!")
+        navigate("/dashboard")
       } else if (res.message && res.message.toLowerCase().includes("success")) {
-        // Success case - message indicates success but no token (unexpected)
-        showSuccess(res.message);
-        // You might want to navigate to login instead since no token
-        navigate("/login");
+        showSuccess(res.message)
+        navigate("/login")
       } else {
-        // Error case - no token and no success message
-        const errorMsg = res.message || "Registration failed";
-        setServerError(errorMsg);
-        showError(errorMsg);
+        const errorMsg = res.message || "Registration failed"
+        setServerError(errorMsg)
+        showError(errorMsg)
       }
     } catch (err: any) {
-      const errorMsg = err.message || "An unexpected error occurred";
-      setServerError(errorMsg);
-      showError(errorMsg);
+      const errorMsg = err.message || "An unexpected error occurred"
+      setServerError(errorMsg)
+      showError(errorMsg)
     }
-  };
+  }
 
-  const password = watch("password");
+  const password = watch("password")
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
@@ -311,7 +305,7 @@ function RegisterPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default RegisterPage;
+export default RegisterPage

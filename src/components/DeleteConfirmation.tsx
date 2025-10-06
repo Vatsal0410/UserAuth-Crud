@@ -15,6 +15,7 @@ const DeleteConfirmation = ({
   onConfirm,
   loading,
 }: DeleteConfirmationProps) => {
+  // add event listener for escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -28,7 +29,7 @@ const DeleteConfirmation = ({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open, onClose]);
 
-  
+  // clean up the event listener
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -38,12 +39,11 @@ const DeleteConfirmation = ({
   if (!open || !user) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50 bg-gray-900/70 backdrop-blur-md"
-      onClick={handleBackdropClick} 
+      onClick={handleBackdropClick}
     >
       <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md transform transition-all">
-        
         <div className="flex items-center justify-center mb-4">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
             <svg
@@ -72,13 +72,17 @@ const DeleteConfirmation = ({
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
             <p className="font-semibold text-red-800 text-lg">{user.name}</p>
             <p className="text-sm text-red-600">{user.email}</p>
-            <p className="text-xs text-red-500 mt-1">{user.department} Department</p>
+            <p className="text-xs text-red-500 mt-1">
+              {user.department} Department
+            </p>
           </div>
 
           <p className="text-sm text-red-600 font-medium">
             ⚠️ This will permanently remove the user from the system.
           </p>
         </div>
+
+        {/* Delete Button */}
 
         <div className="flex space-x-3">
           <button
@@ -111,9 +115,12 @@ const DeleteConfirmation = ({
               </>
             )}
           </button>
+
+          {/* Cancel Button */}
+
           <button
             type="button"
-            onClick={onClose} 
+            onClick={onClose}
             disabled={loading}
             className="flex-1 bg-gray-200 cursor-pointer text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium border border-gray-300"
           >
