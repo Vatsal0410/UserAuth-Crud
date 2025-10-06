@@ -18,24 +18,32 @@ const UserForm = ({
   onSubmit,
   isEditing,
 }: UserFormProps) => {
-  // Initialize useForm
+  // Initialize useForm with onChange mode for real-time validation
   const {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, isValid },
+    watch,
+    trigger,
   } = useForm<UserFormData>({
     defaultValues: {
       name: "",
       email: "",
       department: "",
     },
+    mode: "onChange", // Validate on change for real-time feedback
   })
 
   const [loading, setLoading] = useState(false)
+  
+  // Watch fields for real-time validation
+  const nameValue = watch("name")
+  const emailValue = watch("email")
+  const departmentValue = watch("department")
 
   useEffect(() => {
-    // add event listener for escape key
+    // Add event listener for escape key
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose()
@@ -45,7 +53,7 @@ const UserForm = ({
     if (open) {
       document.addEventListener("keydown", handleEscape)
 
-      // if user is updating
+      // If user is updating
       if (isEditing && user) {
         reset({
           name: user.name,
@@ -53,7 +61,7 @@ const UserForm = ({
           department: user.department,
         })
       }
-      // if user is adding
+      // If user is adding
       else {
         reset({
           name: "",
@@ -63,24 +71,53 @@ const UserForm = ({
       }
     }
 
-    // clean up the event listener
+    // Clean up the event listener
     return () => document.removeEventListener("keydown", handleEscape)
   }, [open, user, isEditing, reset, onClose])
 
-  // add event listener for mouse click
+  // Add event listener for mouse click
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose()
     }
   }
 
+  // Check if field is valid and has content
+  const isFieldValid = (fieldName: keyof UserFormData) => {
+    return !errors[fieldName] && watch(fieldName)?.length > 0
+  }
+
+  // Check specific validations
+  const isNameValid = () => {
+    return isFieldValid("name") && 
+           nameValue.length >= 2 && 
+           /^[a-zA-Z\s]+$/.test(nameValue) &&
+           !/\s{2,}/.test(nameValue) &&
+           nameValue.trim() === nameValue
+  }
+
+  const isEmailValid = () => {
+    return isFieldValid("email") && 
+           /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailValue) &&
+           !/\s/.test(emailValue) &&
+           emailValue.trim() === emailValue
+  }
+
+  const isDepartmentValid = () => {
+    return isFieldValid("department") && 
+           departmentValue.length >= 2 && 
+           /^[a-zA-Z0-9\s&-]+$/.test(departmentValue) &&
+           !/\s{2,}/.test(departmentValue) &&
+           departmentValue.trim() === departmentValue
+  }
+
   if (!open) return null
 
-  // handle form submit
+  // Handle form submit
   const onFormSubmit = async (data: UserFormData) => {
     setLoading(true)
     try {
-      // if user not change and is editing
+      // If user not change and is editing
       if (isEditing && user && !isDirty) {
         showSuccess("No changes detected")
         onClose()
@@ -92,7 +129,7 @@ const UserForm = ({
         isEditing ? "User updated successfully" : "User added successfully"
       )
 
-      // reset form if not editing
+      // Reset form if not editing
       if (!isEditing) {
         reset()
       }
@@ -104,7 +141,7 @@ const UserForm = ({
     }
   }
 
-  // handle form close
+  // Handle form close
   const handleClose = () => {
     onClose()
   }
@@ -179,23 +216,22 @@ const UserForm = ({
                     "Name cannot start or end with spaces",
                 },
               }}
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <div>
                   <input
                     {...field}
                     type="text"
                     placeholder="Enter user's full name"
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      fieldState.invalid
+                      errors.name
                         ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                    } ${
-                      fieldState.isDirty && !fieldState.invalid
+                        : isNameValid()
                         ? "border-green-500 bg-green-50"
-                        : ""
+                        : "border-gray-300"
                     }`}
+                    onBlur={() => trigger("name")}
                   />
-                  {fieldState.isDirty && !fieldState.invalid && (
+                  {isNameValid() && (
                     <div className="flex items-center mt-1">
                       <svg
                         className="w-4 h-4 text-green-500 mr-1"
@@ -219,7 +255,12 @@ const UserForm = ({
               )}
             />
             {errors.name && (
-              <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+              <div className="flex items-center mt-1">
+                <svg className="w-4 h-4 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-red-600">{errors.name.message}</p>
+              </div>
             )}
           </div>
 
@@ -255,23 +296,22 @@ const UserForm = ({
                     "Email cannot start or end with spaces",
                 },
               }}
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <div>
                   <input
                     {...field}
                     type="email"
                     placeholder="Enter user's email address"
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      fieldState.invalid
+                      errors.email
                         ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                    } ${
-                      fieldState.isDirty && !fieldState.invalid
+                        : isEmailValid()
                         ? "border-green-500 bg-green-50"
-                        : ""
+                        : "border-gray-300"
                     }`}
+                    onBlur={() => trigger("email")}
                   />
-                  {fieldState.isDirty && !fieldState.invalid && (
+                  {isEmailValid() && (
                     <div className="flex items-center mt-1">
                       <svg
                         className="w-4 h-4 text-green-500 mr-1"
@@ -295,9 +335,12 @@ const UserForm = ({
               )}
             />
             {errors.email && (
-              <p className="text-sm text-red-600 mt-1">
-                {errors.email.message}
-              </p>
+              <div className="flex items-center mt-1">
+                <svg className="w-4 h-4 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-red-600">{errors.email.message}</p>
+              </div>
             )}
           </div>
 
@@ -341,23 +384,22 @@ const UserForm = ({
                     value.length >= 2 || "Department name is too short",
                 },
               }}
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <div>
                   <input
                     {...field}
                     type="text"
                     placeholder="Enter user's department"
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      fieldState.invalid
+                      errors.department
                         ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                    } ${
-                      fieldState.isDirty && !fieldState.invalid
+                        : isDepartmentValid()
                         ? "border-green-500 bg-green-50"
-                        : ""
+                        : "border-gray-300"
                     }`}
+                    onBlur={() => trigger("department")}
                   />
-                  {fieldState.isDirty && !fieldState.invalid && (
+                  {isDepartmentValid() && (
                     <div className="flex items-center mt-1">
                       <svg
                         className="w-4 h-4 text-green-500 mr-1"
@@ -381,9 +423,12 @@ const UserForm = ({
               )}
             />
             {errors.department && (
-              <p className="text-sm text-red-600 mt-1">
-                {errors.department.message}
-              </p>
+              <div className="flex items-center mt-1">
+                <svg className="w-4 h-4 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-red-600">{errors.department.message}</p>
+              </div>
             )}
           </div>
 
@@ -391,7 +436,7 @@ const UserForm = ({
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || (isEditing && !isDirty)}
+              disabled={loading || (isEditing && !isDirty) || !isValid}
               className="flex-1 cursor-pointer bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center space-x-2 border border-blue-600"
             >
               {loading ? (

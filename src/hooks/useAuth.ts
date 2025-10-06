@@ -1,28 +1,21 @@
-import { useState, useEffect } from 'react'
-import { authCookies } from '../utils/cookies'
+import { authCookies } from "../utils/cookies";
 
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  useEffect(() => {
-    const token = authCookies.getToken()
-    setIsAuthenticated(!!token)
-  }, [])
-
   const login = (token: string) => {
-    authCookies.setToken(token)
-    setIsAuthenticated(true)
-  }
+    authCookies.setToken(token);
+  };
 
   const logout = () => {
-    authCookies.removeToken()
-    setIsAuthenticated(false)
-  }
+    authCookies.removeToken();
+  };
+
+  const getToken = () => {
+    return authCookies.getToken();
+  };
 
   return {
-    isAuthenticated,
     login,
     logout,
-    getToken: authCookies.getToken
-  }
-}
+    getToken,
+  };
+};

@@ -6,8 +6,8 @@ import UserForm from "../components/UserForm"
 import DeleteConfirmation from "../components/DeleteConfirmation"
 import type { User } from "../types/user"
 import { showError, showSuccess } from "../utils/toast"
-import { authCookies } from "../utils/cookies"
 import { useUsers } from "../context/UserContext"
+import { useAuth } from "../hooks/useAuth"
 
 const DashboardPage = () => {
   const [error, setError] = useState<string | null>(null)
@@ -19,9 +19,11 @@ const DashboardPage = () => {
   const { users, setUsers, addUser, updateUser, deleteUser, loading, setLoading } = useUsers()
   const navigate = useNavigate()
 
+  const { logout, getToken } = useAuth()
+
   useEffect(() => {
     const loadDashboardData = async () => {
-      const token = authCookies.getToken()
+      const token = getToken()
       
       if (!token) {
         navigate("/login")
@@ -37,7 +39,7 @@ const DashboardPage = () => {
         
       } catch (err: any) {
         if (err.status === 401 || err.message?.includes("unauthorized") || err.message?.includes("401")) {
-          authCookies.removeToken()
+          logout()
           navigate("/login")
           return
         } else {
@@ -54,7 +56,7 @@ const DashboardPage = () => {
   }, [navigate, setUsers, setLoading])
 
   const handleAddUser = async (userData: Omit<User, "id">) => {
-    const token = authCookies.getToken()
+    const token = getToken()
     if (!token) return
 
     try {
@@ -69,7 +71,7 @@ const DashboardPage = () => {
   }
 
   const handleUpdateUser = async (userData: Omit<User, "id">) => {
-    const token = authCookies.getToken()
+    const token = getToken()
     if (!token || !editingUser) return
 
     try {
@@ -90,7 +92,7 @@ const DashboardPage = () => {
   }
 
   const handleDeleteConfirm = async () => {
-    const token = authCookies.getToken()
+    const token = getToken()
     if (!token || !deletingUser) return
 
     try {
@@ -134,7 +136,7 @@ const DashboardPage = () => {
   }
 
   const handleLogout = () => {
-    authCookies.removeToken()
+    logout()
     navigate("/login")
   }
 
