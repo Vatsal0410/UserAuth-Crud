@@ -63,7 +63,6 @@ const DashboardPage = () => {
       const res = await userService.addUser(token, userData)
       addUser(res)
       setOpenForm(false)
-      showSuccess("User added successfully")
     } catch (err: any) {
       handleApiError(err)
       throw err
@@ -84,7 +83,6 @@ const DashboardPage = () => {
       updateUser(completeUser)
       setEditingUser(null)
       setOpenForm(false)
-      showSuccess("User updated successfully")
     } catch (err: any) {
       handleApiError(err)
       throw err
