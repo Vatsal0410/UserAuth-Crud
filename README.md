@@ -2,6 +2,10 @@
 
 A modern, responsive React application for user management with authentication, built with TypeScript and Tailwind CSS.
 
+## 🌐 Live Demo
+
+You can view the live version of the project here: [Live Demo](https://user-auth-crud.vercel.app/)
+
 ## 🚀 Features
 
 - **User Authentication**
