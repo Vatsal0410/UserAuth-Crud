@@ -57,7 +57,7 @@ const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
               <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                 Department
               </th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-8 py-5 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
